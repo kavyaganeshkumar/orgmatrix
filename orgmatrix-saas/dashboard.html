@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tenant Dashboard | OrgMatrix System</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="../css/style.css" />
+  <style>
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      margin: 0;
+    }
+
+    .dashboard-wrapper {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    .glass-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s, border-color 0.3s;
+    }
+
+    .hero-section {
+      margin-bottom: 48px;
+      background: var(--hero-grad, linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%));
+      padding: 40px;
+      border-radius: 24px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 25px -5px var(--primary-glow);
+      color: white;
+    }
+
+    .admin-nav {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      background: var(--panel-lighter);
+      padding: 6px;
+      border-radius: 12px;
+      width: fit-content;
+    }
+
+    .admin-nav button {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .admin-nav button.active {
+      background: var(--panel);
+      color: var(--primary);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 8px;
+    }
+
+    .data-table th {
+      text-align: left;
+      color: var(--text-muted);
+      padding: 12px 20px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .data-table tr td {
+      background: var(--panel);
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table tr td:first-child { border-radius: 12px 12px 0 0; border-left: 1px solid var(--border); }
+    .data-table tr td:last-child { border-radius: 0 0 12px 12px; border-right: 1px solid var(--border); }
+
+    .company-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .company-form label { display: block; }
+    .company-form span { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
+    .company-form input {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+    }
+
+    .button-primary {
+      background: var(--primary);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .button-secondary {
+      background: rgba(255,255,255,0.05);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+    }
+
+    /* 📊 Chart styling */
+    .chart-container {
+      position: relative;
+      height: 250px;
+      width: 100%;
+    }
+
+    #notificationDropdown::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        right: 15px;
+        border-width: 0 10px 10px 10px;
+        border-style: solid;
+        border-color: transparent transparent white transparent;
+    }
+
+    .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 2000;
+        transition: 0.3s;
+    }
+    .toast.success { border-left: 4px solid #10b981; }
+    .toast.error { border-left: 4px solid #ef4444; }
+    .toast.info { border-left: 4px solid #3b82f6; }
+    .kanban-board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        margin-top: 24px;
+    }
+    .kanban-column {
+        background: rgba(0,0,0,0.02);
+        border: 1px dashed var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        min-height: 400px;
+    }
+    .kanban-header {
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 20px;
+        color: var(--text-muted);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .kanban-item {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        cursor: grab;
+        transition: 0.2s;
+    }
+    .kanban-item:hover { transform: translateY(-3px); box-shadow: 0 10px 15px rgba(0,0,0,0.05); }
+    .priority-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    
+    .palette-btn {
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .palette-btn:hover { transform: scale(1.1); }
+    .palette-btn.active { border: 2px solid white !important; box-shadow: 0 0 0 2px var(--primary); }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      font-size: 2rem;
+      letter-spacing: 0.5em;
+      color: var(--primary);
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .dashboard-wrapper {
+        padding: 20px 10px;
+      }
+
+      header {
+        flex-direction: column;
+        gap: 20px;
+        align-items: flex-start !important;
+      }
+
+      header > div:last-child {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 12px !important;
+      }
+
+      #globalSearchInput {
+        width: 100% !important;
+      }
+
+      #searchResultsDropdown {
+        width: calc(100vw - 40px) !important;
+        right: auto !important;
+        left: 0 !important;
+      }
+
+      .hero-section {
+        padding: 30px 20px;
+      }
+
+      .hero-section > div {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 20px;
+      }
+
+      .hero-section h1 {
+        font-size: 1.8rem;
+      }
+
+      .admin-nav {
+        width: 100%;
+        overflow-x: auto;
+        padding: 4px;
+        white-space: nowrap;
+        display: block;
+      }
+
+      .admin-nav button {
+        padding: 10px 16px;
+        font-size: 0.8rem;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .tab-content > div[style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+      }
+
+      .kanban-board {
+        grid-template-columns: none;
+        display: flex;
+        overflow-x: auto;
+        gap: 16px;
+        padding-bottom: 20px;
+      }
+
+      .kanban-column {
+        min-width: 280px;
+        flex-shrink: 0;
+      }
+
+      .data-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      
+      .company-form {
+        grid-template-columns: 1fr !important;
+      }
+      
+      #doc-upload-form {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="loader" class="loading-overlay">
+      <div class="brand">L O A D I N G</div>
+  </div>
+
+  <main class="dashboard-wrapper">
+    <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 32px;">
+      <div style="display:flex; align-items:center; gap: 12px;">
+         <div style="background: var(--primary); padding: 8px; border-radius: 10px;">🏢</div>
+         <h2 style="font-size: 1.25rem;">OrgMatrix System Tenant</h2>
+      </div>
+      <div style="display:flex; gap: 16px; align-items:center;">
+        <div style="position:relative; display: flex; align-items: center; gap: 10px;">
+          <button id="paletteToggle" title="Color Palettes" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color: var(--text); display: flex; align-items: center; justify-content: center; transition: 0.3s; padding: 5px; border-radius: 50%;">🎨</button>
+          <div id="paletteDropdown" class="glass-card" style="position:absolute; top:40px; right:0; width:220px; display:none; z-index:1001; padding:15px; border: 1px solid var(--border);">
+            <h4 style="margin:0 0 12px 0; font-size: 0.85rem; color: var(--text-muted);">Combination Colors</h4>
+            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px;" id="paletteOptions">
+              <button class="palette-btn active" data-pal="default" title="Default" style="background:#4f46e5; width:36px; height:36px; border-radius:8px; border:2px solid white; cursor:pointer;"></button>
+              <button class="palette-btn" data-pal="emerald" title="Emerald" style="background:#10b981; width:36px; height:36px; border-radius:8px; border:1px solid rgba(0,0,0,0.1); cursor:pointer;"></button>
+              <button class="palette-btn" data-pal="amber" title="Amber" style="background:#f59e0b; width:36px; height:36px; border-radius:8px; border:1px solid rgba(0,0,0,0.1); cursor:pointer;"></button>
+              <button class="palette-btn" data-pal="rose" title="Rose" style="background:#f43f5e; width:36px; height:36px; border-radius:8px; border:1px solid rgba(0,0,0,0.1); cursor:pointer;"></button>
+              <button class="palette-btn" data-pal="cyan" title="Cyan" style="background:#06b6d4; width:36px; height:36px; border-radius:8px; border:1px solid rgba(0,0,0,0.1); cursor:pointer;"></button>
+              <button class="palette-btn" data-pal="sunset" title="Sunset" style="background: linear-gradient(135deg, #8b5cf6, #f43f5e); width:36px; height:36px; border-radius:8px; border:1px solid rgba(0,0,0,0.1); cursor:pointer;"></button>
+            </div>
+          </div>
+        </div>
+        <button id="themeToggle" style="background:none; border:none; cursor:pointer; font-size:1.2rem; color: var(--text); display: flex; align-items: center; justify-content: center; transition: 0.3s; padding: 5px; border-radius: 50%;">🌙</button>
+        <!-- 🔍 Global Search Bar -->
+        <div style="position:relative;" id="globalSearchContainer">
+           <input type="text" id="globalSearchInput" placeholder="Search tasks, projects, team..." 
+                  style="padding: 10px 16px; border-radius: 20px; border: 1px solid #e2e8f0; width: 300px; font-size: 0.85rem; outline: none; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+           <div id="searchResultsDropdown" class="glass-card" 
+                style="position:absolute; top:45px; right:0; width:450px; display:none; z-index:2000; padding:15px; max-height:500px; overflow-y:auto; border: 1px solid var(--primary);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #f1f5f9; padding-bottom:10px;">
+                    <h4 style="margin:0;">Search Results</h4>
+                    <select id="searchTypeFilter" style="font-size:0.7rem; padding:4px; border-radius:4px;">
+                        <option value="">All Types</option>
+                        <option value="projects">Projects</option>
+                        <option value="tasks">Tasks</option>
+                        <option value="users">People</option>
+                    </select>
+                </div>
+                <div id="searchResultsList" style="display:flex; flex-direction:column; gap:10px;"></div>
+           </div>
+        </div>
+
+        <div style="position:relative; cursor:pointer;" onclick="toggleNotifications()">
+           <span id="notificationCount" style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; font-size:0.6rem; padding:1px 5px; border-radius:10px; display:none;">0</span>
+           <span style="font-size:1.2rem;">🔔</span>
+           <div id="notificationDropdown" class="glass-card" style="position:absolute; top:35px; right:0; width:300px; display:none; z-index:1000; padding:15px; max-height:400px; overflow-y:auto;">
+              <h4 style="margin:0 0 10px 0;">Notifications</h4>
+              <div id="notificationListItems"></div>
+           </div>
+        </div>
+        <span id="roleBadgeDisplay" style="font-size:0.75rem; font-weight:600; padding:3px 10px; border-radius:20px;"></span>
+        <span style="color: var(--text-muted); font-size: 0.8rem;" id="tenantNameDisplay">Tenant Name</span>
+        <a class="button-secondary" style="padding: 8px 16px; font-size: 0.8rem; color: #0f172a; border: 1px solid #0f172a;" id="logoutLink" href="#">Logout</a>
+      </div>
+    </header>
+
+    <div class="hero-section">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+           <h1 style="font-size: 2.5rem; margin-bottom: 12px;">Welcome back, <span id="userNameHeader">Admin</span>!</h1>
+           <p style="opacity: 0.9; max-width: 600px; font-size: 1.1rem; line-height: 1.6;">
+             Your centralized command center for <span id="companyNameHeader">Your Company</span>. 
+             Monitor projects, manage your talent, and track organizational growth in real-time.
+           </p>
+        </div>
+        <div style="text-align: right; opacity: 0.8; font-size: 0.9rem;">
+            <div id="currentDateDisplay"></div>
+            <div id="syncStatus" style="color: var(--accent-green); font-weight: 600; margin-top: 4px;">• Synchronized</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="admin-nav" id="mainNav">
+      <button onclick="switchTab('overview')" id="tab-overview" class="active">Overview & Analytics</button>
+      <button onclick="switchTab('profile')" id="tab-profile">Organization Details</button>
+      <button onclick="switchTab('team')" id="tab-team">User Directory</button>
+      <button onclick="switchTab('projects')" id="tab-projects">Projects & Services</button>
+      <button onclick="switchTab('tasks')" id="tab-tasks">Task Board</button>
+      <button onclick="switchTab('logs')" id="tab-logs">⚡ Activity Logs</button>
+      <button onclick="switchTab('billing')" id="tab-billing">💳 Billing & Plans</button>
+    </nav>
+
+    <!-- OVERVIEW TAB -->
+    <section id="section-overview" class="tab-content active">
+      <div class="stats-grid">
+        <article class="glass-card stat-card">
+          <div class="stat-icon-box" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">💰</div>
+          <div>
+            <small style="color: var(--text-muted);">Company Revenue</small>
+            <h2 id="userTotalRevenue" style="font-size: 1.8rem; font-weight: 700;">$0</h2>
+          </div>
+        </article>
+        <article class="glass-card stat-card">
+          <div class="stat-icon-box" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">📈</div>
+          <div>
+            <small style="color: var(--text-muted);">Company Net Profit</small>
+            <h2 id="userTotalProfit" style="font-size: 1.8rem; font-weight: 700;">$0</h2>
+          </div>
+        </article>
+        <article class="glass-card stat-card">
+          <div class="stat-icon-box" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">👥</div>
+          <div>
+            <small style="color: var(--text-muted);">Team Members</small>
+            <h2 id="userTotalEmployees" style="font-size: 1.8rem; font-weight: 700;">0</h2>
+          </div>
+        </article>
+        <article class="glass-card stat-card">
+          <div class="stat-icon-box" style="background: rgba(168, 85, 247, 0.1); color: #a855f7;">🚀</div>
+          <div>
+            <small style="color: var(--text-muted);">Projects & Services</small>
+            <h2 id="userTotalRecords" style="font-size: 1.8rem; font-weight: 700;">0</h2>
+          </div>
+        </article>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px;">
+        <div class="glass-card">
+          <h3 style="margin-bottom: 24px;">🚀 Project Delivery Progress</h3>
+          <div class="chart-container">
+            <canvas id="projectProgressChart"></canvas>
+          </div>
+        </div>
+        <div class="glass-card">
+          <h3 style="margin-bottom: 24px;">📋 Detailed Project Status</h3>
+          <div class="table-wrap">
+              <table class="data-table mobile-cards">
+                  <thead>
+                      <tr>
+                          <th>Project</th>
+                          <th>Status</th>
+                          <th>Progress</th>
+                          <th>Deadline</th>
+                      </tr>
+                  </thead>
+                  <tbody id="overviewProjectTableBody">
+                      <tr><td colspan="4" style="text-align:center;">Syncing projects...</td></tr>
+                  </tbody>
+              </table>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 32px;">
+          <div class="glass-card">
+            <h3 style="margin-bottom: 24px;">📊 Quarterly Business Data</h3>
+            <div class="table-wrap">
+              <table class="data-table" style="border-spacing: 0;">
+                <thead>
+                  <tr>
+                    <th>Record</th>
+                    <th>Region</th>
+                    <th>Revenue</th>
+                    <th>Profit</th>
+                    <th>Fiscal Year</th>
+                  </tr>
+                </thead>
+                <tbody id="tenantTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+          
+          <div class="glass-sidebar" style="display:flex; flex-direction:column; gap:32px;">
+            <div class="glass-card">
+              <h3 style="margin-bottom: 24px;">🔔 Your Assigned Tasks</h3>
+              <div id="taskNotificationList" style="display: flex; flex-direction: column; gap: 4px;">
+                  <div style="text-align: center; color: var(--text-muted); padding: 10px;">
+                      Checking for assigned tasks...
+                  </div>
+              </div>
+            </div>
+
+            <div class="glass-card">
+              <h3 style="margin-bottom: 24px;">🤝 Project Team Members</h3>
+              <div id="projectTeamList" style="display: flex; flex-direction: column; gap: 12px;">
+                  <div style="text-align: center; color: var(--text-muted); padding: 10px;">
+                      Fetching team members...
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ACTIVITY LOGS TAB -->
+    <section id="section-logs" class="tab-content" style="display:none;">
+      <div class="glass-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+          <h2 style="margin:0;">⚡ Recent Activity Log</h2>
+          <button onclick="exportLogsCSV()" class="button-secondary" style="font-size:0.7rem; padding:5px 10px; border:1px solid var(--primary); color:var(--primary);">📥 Export CSV</button>
+        </div>
+        <div style="display:flex; gap:8px; margin-bottom:15px; flex-wrap:wrap;">
+            <input type="text" id="logActionFilter" placeholder="Filter action..." style="font-size:0.7rem; padding:10px; border-radius:8px; border:1px solid #e2e8f0; flex:1;">
+            <input type="date" id="logDateFilter" style="font-size:0.7rem; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+            <button onclick="loadTenantActivities()" class="button-primary" style="padding:10px 20px;">🔍 Filter Logs</button>
+        </div>
+        <div id="tenantActivityList" style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+                Syncing company logs...
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE TAB -->
+    <section id="section-profile" class="tab-content" style="display:none;">
+      <div class="glass-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+            <h2 style="margin: 0;">🏢 Organization Details</h2>
+            <div id="logoPreviewWrapper" style="width:100px; height:100px; border-radius:16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.1); overflow:hidden; display:none;">
+                <img id="dashboardCompanyLogo" src="" style="width:100%; height:100%; object-fit:cover;">
+            </div>
+        </div>
+        <form id="company-form" class="company-form">
+          <label>
+            <span>Company Name</span>
+            <input id="companyName" type="text" required />
+          </label>
+          <label>
+            <span>Industry</span>
+            <input id="industry" type="text" required />
+          </label>
+          <label>
+            <span>Region</span>
+            <input id="region" type="text" required />
+          </label>
+          <label>
+            <span>Revenue ($)</span>
+            <input id="revenue" type="number" required />
+          </label>
+          <label>
+            <span>Expenses ($)</span>
+            <input id="expenses" type="number" required />
+          </label>
+          <label>
+            <span>Net Profit ($)</span>
+            <input id="profit" type="number" readonly />
+          </label>
+          <label>
+            <span>Employees</span>
+            <input id="employees" type="number" required />
+          </label>
+          <label>
+            <span>Fiscal Year</span>
+            <input id="year" type="text" required />
+          </label>
+          <label>
+            <span>Email</span>
+            <input id="email" type="email" placeholder="company@example.com" />
+          </label>
+          <label>
+            <span>Phone</span>
+            <input id="phone" type="text" placeholder="+1-234-567-890" />
+          </label>
+          <label>
+            <span>Website</span>
+            <input id="website" type="url" placeholder="https://www.company.com" />
+          </label>
+          <label>
+            <span>Tax ID / EIN</span>
+            <input id="taxId" type="text" placeholder="Optional" />
+          </label>
+          <label style="grid-column: 1 / -1;">
+            <span>Address</span>
+            <input id="address" type="text" placeholder="Full street address, city, country" />
+          </label>
+          <label style="grid-column: 1 / -1;">
+            <span>Company Description</span>
+            <input id="description" type="text" placeholder="Short blurb about what you do..." />
+          </label>
+          <label>
+            <span>Brand Theme Color</span>
+            <input id="themeColor" type="color" value="#4f46e5" style="height: 50px; cursor: pointer;" />
+          </label>
+          <div style="grid-column: 1 / -1;"></div>
+          <label style="grid-column: 1 / -1;">
+            <span>Company Logo</span>
+            <input id="logoFile" type="file" accept="image/*" />
+          </label>
+          <div style="grid-column: 1 / -1; margin-top: 20px; display:flex; gap: 12px;">
+            <button type="submit" class="button-primary">Save Profile Changes</button>
+            <button type="button" id="resetProfile" class="button-secondary">Reset Form</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- TEAM TAB -->
+    <section id="section-team" class="tab-content" style="display:none;">
+      <div class="glass-card" style="margin-bottom: 32px;" id="addTeamMemberCard">
+        <h2 style="margin-bottom: 24px;">➕ Add Team Member</h2>
+        <form id="team-form" class="company-form">
+          <label>
+            <span>Member Email</span>
+            <input id="teamEmail" type="email" required />
+          </label>
+          <label>
+            <span>Role</span>
+            <select id="teamRole" style="width:100%; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; color:var(--text); font-size:0.95rem;">
+              <option value="project_manager">🟡 Project Manager</option>
+              <option value="team_lead">🔵 Team Lead</option>
+              <option value="developer">🟢 Developer</option>
+              <option value="viewer">👁️ Viewer / Client</option>
+              <option value="hr_manager">🟣 HR / Staff Manager</option>
+              <option value="support_analyst">⚙️ Support / Analyst</option>
+            </select>
+          </label>
+          <label>
+            <span>Temporary Password</span>
+            <input id="teamPassword" type="password" required />
+          </label>
+          <div style="grid-column: 1 / -1; margin-top: 10px;">
+            <button type="submit" class="button-primary">Add Member</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="glass-card">
+        <h2 style="margin-bottom: 24px;">👥 User Directory</h2>
+        <div class="table-wrap">
+          <table class="data-table mobile-cards">
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Role</th>
+                <th>Active Work</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody id="teamTableBody">
+              <tr><td colspan="3" style="text-align:center;">Loading team data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS TAB -->
+    <section id="section-projects" class="tab-content" style="display:none;">
+      <div class="glass-card" style="margin-bottom: 32px;">
+        <h2 style="margin-bottom: 24px;">🚀 launch New Project</h2>
+        <form id="project-form" class="company-form">
+          <label>
+            <span>Project Name</span>
+            <input id="projName" type="text" required />
+          </label>
+          <label>
+            <span>Budget ($)</span>
+            <input id="projBudget" type="number" required />
+          </label>
+          <label>
+            <span>Deadline</span>
+            <input id="projDeadline" type="date" required />
+          </label>
+          <label>
+            <span>Project Handler (Member)</span>
+            <select id="projHandler" style="width:100%; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; color:var(--text);">
+              <option value="">Unassigned (Pending)</option>
+            </select>
+          </label>
+          <label style="grid-column: 1 / -1;">
+            <span>Brief Description</span>
+            <input id="projDesc" type="text" placeholder="Explain the project goal..." />
+          </label>
+          <div style="grid-column: 1 / -1; margin-top: 10px;">
+            <button type="submit" class="button-primary">Create Project</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="glass-card" style="margin-bottom: 32px;">
+        <h2 style="margin-bottom: 24px;">📋 Project Portfolio</h2>
+        <div class="table-wrap">
+          <table class="data-table mobile-cards">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Status</th>
+                <th>Progress</th>
+                <th>Handler</th>
+                <th>Budget</th>
+                <th>Deadline</th>
+              </tr>
+            </thead>
+            <tbody id="userProjectTableBody">
+              <tr><td colspan="6" style="text-align:center;">No projects found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 24px;">
+            <h2 style="margin:0;">📁 Project Documents</h2>
+        </div>
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:20px; margin-bottom:24px;">
+            <form id="doc-upload-form" style="display:flex; gap:16px; align-items:flex-end;">
+                <label style="flex:1;">
+                    <span style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">Select Project</span>
+                    <select id="docProjectSelect" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;"></select>
+                </label>
+                <label style="flex:1;">
+                    <span style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">Document Name</span>
+                    <input type="text" id="docName" placeholder="e.g. Contract v1" style="width:100%; padding:10px; border:1px solid #e2e8f0; border-radius:8px;">
+                </label>
+                <label style="flex:1;">
+                    <span style="display:block; font-size:0.75rem; color:var(--text-muted); margin-bottom:5px;">File</span>
+                    <input type="file" id="docFile" style="font-size:0.7rem;">
+                </label>
+                <button type="submit" class="button-primary" style="padding:10px 20px;">📤 Upload</button>
+            </form>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table mobile-cards">
+            <thead>
+              <tr>
+                <th>Document Name</th>
+                <th>Project</th>
+                <th>Uploaded By</th>
+                <th>Link</th>
+              </tr>
+            </thead>
+            <tbody id="projectDocsTableBody">
+              <tr><td colspan="4" style="text-align:center;">No documents uploaded yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TASKS TAB -->
+    <section id="section-tasks" class="tab-content" style="display:none;">
+
+      <!-- Create Task — visible only to managers -->
+      <div class="glass-card" style="margin-bottom: 32px;" id="createTaskCard">
+        <h2 style="margin-bottom: 24px;">📝 Assign New Task</h2>
+        <form id="task-form" class="company-form">
+          <label>
+            <span>Task Title</span>
+            <input id="taskTitle" type="text" placeholder="e.g. Design login screen" required />
+          </label>
+          <label>
+            <span>Project</span>
+            <select id="taskProject" style="width:100%; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; color:var(--text);">
+              <option value="">— Loading projects… —</option>
+            </select>
+          </label>
+          <label>
+            <span>Assign To (Member)</span>
+            <select id="taskAssignee" style="width:100%; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; color:var(--text);">
+              <option value="">— Unassigned —</option>
+            </select>
+          </label>
+          <label>
+            <span>Priority</span>
+            <select id="taskPriority" style="width:100%; padding:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; color:var(--text);">
+              <option value="low">🟢 Low</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="high">🔴 High</option>
+            </select>
+          </label>
+          <label>
+            <span>Deadline</span>
+            <input id="taskDeadline" type="date" />
+          </label>
+          <label style="grid-column: 1 / -1;">
+            <span>Description</span>
+            <input id="taskDesc" type="text" placeholder="Describe the task goal…" />
+          </label>
+          <div style="grid-column: 1 / -1; margin-top: 10px;">
+            <button type="submit" class="button-primary">Assign Task</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Task List -->
+      <div class="glass-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+          <h2 style="margin:0;">📋 Task Board</h2>
+          <div style="display:flex; gap:8px;">
+            <button onclick="toggleTaskView('list')" id="task-view-list" class="button-secondary active" style="padding:8px 16px; font-size:0.75rem; border-radius: 20px;">List</button>
+            <button onclick="toggleTaskView('kanban')" id="task-view-kanban" class="button-secondary" style="padding:8px 16px; font-size:0.75rem; border-radius: 20px;">Kanban</button>
+          </div>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:24px;">
+          All tasks visible to your role. Developers can update their own task status.
+        </p>
+
+        <div id="taskListContainer">
+          <div class="table-wrap">
+            <table class="data-table mobile-cards">
+              <thead>
+                <tr>
+                  <th>Task</th>
+                  <th>Project</th>
+                  <th>Assigned To</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Deadline</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="taskTableBody">
+                <tr><td colspan="7" style="text-align:center;">Loading tasks…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="taskKanbanContainer" style="display:none;">
+           <div class="kanban-board">
+              <div class="kanban-column" id="col-pending">
+                 <div class="kanban-header">🕒 To Do <span class="badge" id="count-pending">0</span></div>
+                 <div class="kanban-list" id="list-pending"></div>
+              </div>
+              <div class="kanban-column" id="col-in-progress">
+                 <div class="kanban-header">⚙️ In Progress <span class="badge" id="count-in-progress">0</span></div>
+                 <div class="kanban-list" id="list-in-progress"></div>
+              </div>
+              <div class="kanban-column" id="col-completed">
+                 <div class="kanban-header">✅ Completed <span class="badge" id="count-completed">0</span></div>
+                 <div class="kanban-list" id="list-completed"></div>
+              </div>
+           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BILLING TAB -->
+    <section id="section-billing" class="tab-content" style="display:none;">
+      <div class="stats-grid">
+         <article class="glass-card">
+            <h3 style="margin-bottom:10px;">Current Plan</h3>
+            <div id="currentPlanDisplay" style="font-size:1.5rem; font-weight:700; color:var(--primary);">FREE</div>
+            <p style="color:var(--text-muted); font-size:0.85rem;">Status: <span id="subscriptionStatus" style="font-weight:600;">Active</span></p>
+         </article>
+      </div>
+
+      <h2 style="margin: 40px 0 24px;">Upgrade Your Experience</h2>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:24px;">
+         <article class="glass-card" style="display:flex; flex-direction:column; gap:20px; border:2px solid #e2e8f0;">
+            <h3 style="margin:0;">Pro Plan</h3>
+            <div style="font-size:2rem; font-weight:700;">$49<small style="font-size:1rem; color:var(--text-muted);">/mo</small></div>
+            <ul style="padding-left:20px; color:var(--text-muted); font-size:0.9rem;">
+                <li>Up to 10 Projects</li>
+                <li>Up to 20 Users</li>
+                <li>Email Notifications</li>
+                <li>Advanced Analytics</li>
+            </ul>
+            <button onclick="subscribe('pro')" class="button-primary" style="margin-top:auto;">Upgrade to Pro</button>
+         </article>
+
+         <article class="glass-card" style="display:flex; flex-direction:column; gap:20px; border:2px solid var(--primary);">
+            <div style="background:var(--primary); color:white; padding:4px 12px; border-radius:20px; font-size:0.7rem; width:fit-content; position:absolute; top:-12px; right:20px;">MOST POPULAR</div>
+            <h3 style="margin:0;">Enterprise Plan</h3>
+            <div style="font-size:2rem; font-weight:700;">$199<small style="font-size:1rem; color:var(--text-muted);">/mo</small></div>
+            <ul style="padding-left:20px; color:var(--text-muted); font-size:0.9rem;">
+                <li>Unlimited Projects</li>
+                <li>Unlimited Users</li>
+                <li>Priority Support</li>
+                <li>White Labeling (Custom Domain)</li>
+            </ul>
+            <button onclick="subscribe('enterprise')" class="button-primary" style="margin-top:auto;">Contact Sales</button>
+         </article>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav">
+    <a href="javascript:void(0)" class="bottom-nav-item active" onclick="switchTab('overview'); updateBottomNav(this)">
+      <span class="icon">📊</span>
+      <span>Overview</span>
+    </a>
+    <a href="javascript:void(0)" class="bottom-nav-item" onclick="switchTab('projects'); updateBottomNav(this)">
+      <span class="icon">🚀</span>
+      <span>Projects</span>
+    </a>
+    <a href="javascript:void(0)" class="bottom-nav-item" onclick="switchTab('tasks'); updateBottomNav(this)">
+      <span class="icon">📝</span>
+      <span>Tasks</span>
+    </a>
+    <a href="javascript:void(0)" class="bottom-nav-item" onclick="switchTab('team'); updateBottomNav(this)">
+      <span class="icon">👥</span>
+      <span>Team</span>
+    </a>
+    <a href="javascript:void(0)" class="bottom-nav-item" onclick="switchTab('billing'); updateBottomNav(this)">
+      <span class="icon">💳</span>
+      <span>Billing</span>
+    </a>
+  </nav>
+
+  <script>
+    function updateBottomNav(el) {
+      document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
+      el.classList.add('active');
+    }
+    
+    // Initial active state for tab
+    const originalSwitchTab = window.switchTab;
+    window.switchTab = function(tabId) {
+        if (typeof originalSwitchTab === 'function') originalSwitchTab(tabId);
+        // Sync bottom nav active state if switched from elsewhere
+        const items = document.querySelectorAll('.bottom-nav-item');
+        const mapping = { 'overview': 0, 'projects': 1, 'tasks': 2, 'team': 3, 'billing': 4 };
+        if (mapping[tabId] !== undefined) {
+            items.forEach(i => i.classList.remove('active'));
+            items[mapping[tabId]].classList.add('active');
+        }
+    }
+  </script>
+
+  <div id="toast-container"></div>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script type="module" src="../js/dashboard.js"></script>
+</body>
+</html>

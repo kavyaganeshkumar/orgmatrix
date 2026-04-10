@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tenant Login - OrgMatrix</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/login.css">
+</head>
+
+<body>
+
+  <div class="login-container">
+    <div class="login-box">
+      <div class="brand-wrapper" aria-label="Brand animation">
+        <h1 id="brand" class="brand" data-text="WORKSPACE">WORKSPACE</h1>
+        <p style="color: #64748b; margin-top: 10px; font-size: 0.9rem;">Sign in to your team's workspace</p>
+      </div>
+
+      <form id="tenant-login-form" class="login-form" novalidate>
+        <label>
+          <span>Email</span>
+          <input type="email" id="email" placeholder="user@company.com" required>
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" id="password" placeholder="Enter password" required>
+        </label>
+        <label>
+          <span>Your Role</span>
+          <select id="user-role" required>
+            <option value="">— Select your role —</option>
+            <option value="admin">🏢 Company Administrator</option>
+            <option value="project_manager">🟡 Project Manager</option>
+            <option value="team_lead">🔵 Team Lead</option>
+            <option value="developer">🟢 Developer</option>
+            <option value="viewer">👁️ Viewer / Client</option>
+            <option value="hr_manager">🟣 HR / Staff Manager</option>
+            <option value="support_analyst">⚙️ Support / Analyst</option>
+          </select>
+        </label>
+        <button type="submit">Login to Workspace</button>
+      </form>
+
+      <!-- Registration Form (Hidden by default) -->
+      <form id="tenant-register-form" class="login-form" style="display: none;" novalidate>
+        <label>
+          <span>Company Name</span>
+          <input type="text" id="reg-company" placeholder="e.g. Acme Corp" required>
+        </label>
+        <label>
+          <span>Email (Mail ID)</span>
+          <input type="email" id="reg-email" placeholder="admin@company.com" required>
+        </label>
+        <label>
+          <span>Password</span>
+          <input type="password" id="reg-password" placeholder="Create password" required>
+        </label>
+        <input type="hidden" id="reg-role" value="admin">
+        <button type="submit">Create Account</button>
+      </form>
+
+      <div style="margin-top: 20px; text-align: center;">
+        <p id="toggle-text" style="color: #64748b; font-size: 0.9rem;">
+          Not registered? <a href="#" id="switch-to-register" style="color: var(--primary); font-weight: 600;">Create account</a>
+        </p>
+      </div>
+
+      <p class="login-switch" style="margin-top: 30px;"><a href="login.html">← Back to System Login</a></p>
+    </div>
+  </div>
+
+  <script type="module" src="../js/tenant-login.js"></script>
+</body>
+
+</html>

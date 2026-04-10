@@ -1,0 +1,17 @@
+{
+  "name": "OrgMatrix System",
+  "short_name": "OrgMatrix",
+  "description": "Multi-Tenant SaaS Management Platform",
+  "start_url": "/login.html",
+  "display": "standalone",
+  "background_color": "#030712",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/5968/5968261.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

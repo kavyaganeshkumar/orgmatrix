@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - OrgMatrix System</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/login.css">
+</head>
+
+<body>
+
+  <div class="login-container">
+    <div class="login-box">
+      <div class="brand-wrapper" aria-label="Brand animation">
+        <h1 id="brand" class="brand" data-text="ORGMATRIX">ORGMATRIX</h1>
+      </div>
+
+      <form id="login-form" class="login-form" novalidate>
+        <div class="account-type-cards">
+          <!-- Super Admin Card -->
+          <div class="type-card" data-type="super-admin">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #6366f1;">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <path d="M9 12l2 2 4-4"></path>
+              </svg>
+            </div>
+            <div class="card-text" style="font-size: 0.8rem;">Super Admin</div>
+          </div>
+
+          <!-- Company Admin Card -->
+          <div class="type-card" data-type="company-admin">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #6366f1;">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </div>
+            <div class="card-text" style="font-size: 0.8rem;">Company Admin</div>
+          </div>
+
+          <!-- Tenant User Card -->
+          <div class="type-card" data-type="user">
+            <div class="card-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #10b981;">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="card-text" style="font-size: 0.8rem;">Tenant User</div>
+          </div>
+        </div>
+        <input type="hidden" id="account-type" value="">
+
+        <!-- Super Admin Fields -->
+        <div id="super-admin-fields" style="display: none;">
+          <label>
+            <span>Super Admin Email</span>
+            <input type="email" id="super-email" placeholder="superadmin@orgmatrix.com">
+          </label>
+          <label>
+            <span>Password</span>
+            <input type="password" id="super-password" placeholder="Enter password">
+          </label>
+          <button type="submit" id="super-login-btn">Super Admin Login</button>
+        </div>
+
+        <!-- Company Admin Fields (Login Flow) -->
+        <div id="company-admin-fields" style="display: none;">
+          <div id="admin-login-sec">
+            <label>
+              <span>Admin Email</span>
+              <input type="email" id="company-email" placeholder="admin@company.com">
+            </label>
+            <label>
+              <span>Password</span>
+              <input type="password" id="company-password" placeholder="Enter password">
+            </label>
+            <button type="submit" id="company-login-btn">Company Admin Login</button>
+            <p style="text-align: center; margin-top: 15px; font-size: 0.85rem; color: #64748b;">
+              Not registered? <a href="#" id="toggle-admin-reg" style="color: #6366f1; font-weight: 600;">Create account</a>
+            </p>
+          </div>
+
+          <div id="admin-reg-sec" style="display: none;">
+            <label>
+              <span>Company Name</span>
+              <input type="text" id="reg-company-name" placeholder="e.g. Acme Corp">
+            </label>
+            <label>
+              <span>Admin Email</span>
+              <input type="email" id="reg-admin-email" placeholder="admin@company.com">
+            </label>
+            <label>
+              <span>Password</span>
+              <input type="password" id="reg-admin-password" placeholder="Create password">
+            </label>
+            <button type="button" id="company-reg-btn" style="background: linear-gradient(135deg, #6366f1, #a855f7);">Register Organization</button>
+            <p style="text-align: center; margin-top: 15px; font-size: 0.85rem; color: #64748b;">
+              Already have an account? <a href="#" id="toggle-admin-login" style="color: #6366f1; font-weight: 600;">Login here</a>
+            </p>
+          </div>
+        </div>
+
+        <div id="user-fields" style="display: none; text-align: center; margin-top: 10px;">
+          <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">Access your team's workspace, roles, and tasks.</p>
+          <button type="button" id="go-to-tenant-btn" style="background: linear-gradient(135deg, #10b981, #059669);">Proceed to Tenant Login</button>
+        </div>
+      </form>
+
+      <div id="secret-register-box" style="display: none; margin-top: 24px; animation: fadeInUp 0.5s ease forwards;">
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .brand { cursor: pointer; user-select: none; }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+
+  <script type="module" src="../js/login.js"></script>
+</body>
+
+</html>
